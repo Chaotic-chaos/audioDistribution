@@ -1,0 +1,4 @@
+tqdm==4.60.0
+requests==2.25.1
+librosa==0.8.0
+Django==3.2.3
