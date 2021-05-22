@@ -13,20 +13,24 @@ from getter.models import Audio
 def get_audio(request):
     # 获取一个尚未识别的任务文件
     try:
-        audio_files = Audio.objects.get(transcript='')
-    except:
+        audio = Audio.objects.filter(Q(transcript='') & Q(distributed=0))[0]
+        # 获取成功，更改分发状态
+        audio.distributed = True
+        audio.save()
+    except Exception as e:
         # 无更多识别任务
+        print(e)
         return HttpResponse(json.dumps({
             "code": 404,
             "msg": "There's no more task."
         }))
 
     # 返回该文件，文件名定义为任务id，便于后期回传
-    file_format = audio_files.audio_path.split('.')[-1]
-    file = open(audio_files.audio_path, 'rb')
+    file_format = audio.audio_path.split('.')[-1]
+    file = open(audio.audio_path, 'rb')
     response = FileResponse(file)
     response['Content-Type'] = "application/octet-stream"
-    response['Content-Disposition'] = f"attachment;filename={audio_files.id}.{file_format}"
+    response['Content-Disposition'] = f"attachment;filename={audio.id}.{file_format}"
     return response
 
 def upload_task(request):
