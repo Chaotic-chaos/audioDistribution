@@ -2,3 +2,5 @@
 offlineModelGetter/settings.py
 */__pycache__
 */*/__pycache__
+*.tsv
+*.wav

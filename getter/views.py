@@ -51,6 +51,7 @@ def upload_task(request):
     audio.audio_path = audio_file
     audio.duration = duration
     audio.transcript = ''
+    audio.sample_rate = sr
     audio.save()
 
     return HttpResponse(json.dumps({
