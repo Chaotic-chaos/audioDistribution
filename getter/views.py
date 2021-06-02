@@ -101,7 +101,7 @@ def export_data(request):
     # 解析结果
     res = []
     for audio in audios:
-        res.append([audio.audio_path, audio.duration, audio.transcript])
+        res.append([audio.id, audio.audio_path, audio.duration, audio.transcript])
         audio.exported = 1
         audio.save()
 
@@ -110,7 +110,7 @@ def export_data(request):
     response['Content-Disposition'] = "attachment;filename=export.tsv"
     writer = csv.writer(response, delimiter='\t')
     # 写入标题
-    writer.writerow(['PATH', 'DURATION', 'TRANSCRIPT'])
+    writer.writerow(['TASK-ID', 'PATH', 'DURATION', 'TRANSCRIPT'])
     writer.writerows(res)
 
     return response
