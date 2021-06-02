@@ -10,6 +10,7 @@
 import argparse
 import tempfile
 import threading
+import time
 
 import librosa
 import requests
@@ -23,11 +24,12 @@ get a audio from server and request for transcription
 '''
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-u", "--url", default=None, help="URL of the server")
-parser.add_argument("-t", "--transcript_url", default=None, help="URL of the asr @lovefan")
+parser.add_argument("-u", "--url", default="http://222.197.219.26:5555/", help="URL of the server")
+parser.add_argument("-t", "--transcript_url", default="http://lovemefan.top:8000/asr", help="URL of the asr @lovefan")
 parser.add_argument("-l", "--limit", default=None, help="Limitation of tasks")
 # multi-threads is currently not available.
 parser.add_argument("-th", "--threads", default=1, help="Threads count")
+parser.add_argument("-m", "--max_retry_times", default=5, help="Retry times if server is 500")
 
 args = parser.parse_args()
 
@@ -43,7 +45,7 @@ def get_audio():
     except Exception as e:
         # no more tasks
         if json.loads(response.text)['code'] == 404:
-            print(f"{threading.currentThread().name}: There's no more tasks\n")
+            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) }] [Waring] [{threading.currentThread().name}]: There's no more tasks\n")
             return
 
     # create a temp file object
@@ -62,7 +64,7 @@ def get_transcription(audio_file):
     }
     res = json.loads(requests.post(url=args.transcript_url, files=files).text)
 
-    return max(res, key=len)
+    return res['result']
 
 def upload_text(task_id, text):
     '''
@@ -82,7 +84,7 @@ def upload_text(task_id, text):
         total_num += 1
         mutex.release()
         print(f"##################################################\n"
-              f"Task-{task_id}: {text} updated.\nBy {threading.currentThread().name}\n"
+              f"[{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) }] [Logging] [{threading.currentThread().name}] Task-{task_id}: '{text}' updated.\nBy {threading.currentThread().name}\n"
               f"##################################################\n")
 
 def run():
@@ -94,7 +96,7 @@ def run():
             if total_num >= args.limit:
                 mutex.release()
                 # hit the max limitation, return the function
-                print(f"{threading.currentThread().name}: Hit the max limitation {args.limit}, stop the function.")
+                print(f"[{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) }] [Warning] [{threading.currentThread().name}]: Hit the max limitation {args.limit}, stop the function.")
                 return
             mutex.release()
 
@@ -103,10 +105,22 @@ def run():
         except :
             return
 
-        # text = get_transcription(audio)
-        text = f"test{threading.currentThread().name}"
+        retry_counter = 0
+        while retry_counter < args.max_retry_times:
+            try:
+                text = get_transcription(audio)
+                upload_text(task_id, text)
+                break
+            except :
+                retry_counter += 1
+                continue
 
-        upload_text(task_id, text)
+        if retry_counter >= args.max_retry_times:
+            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()) }] [Error] [{threading.currentThread().name}]: Task-{task_id} update failed after {args.max_retry_times} times trying.")
+
+        # text = f"test{threading.currentThread().name}"
+
+        # upload_text(task_id, text)
 
 
 
