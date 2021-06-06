@@ -41,6 +41,7 @@ def upload_task(request):
     '''
     # 获取文件
     audio_file = json.loads(str(request.body, 'utf-8'))['file_path']
+    audio_source = json.loads(str(request.body, 'utf-8'))['audio_source']
 
     # 获取音频长度（duration）
     y, sr = librosa.load(audio_file, sr=None)
@@ -52,6 +53,7 @@ def upload_task(request):
     audio.duration = duration
     audio.transcript = ''
     audio.sample_rate = sr
+    audio.source = audio_source
     audio.save()
 
     return HttpResponse(json.dumps({

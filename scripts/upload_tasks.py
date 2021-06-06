@@ -23,6 +23,7 @@ parser.add_argument("-u", "--url", default="http://222.197.219.26:5555/getter/ta
 parser.add_argument("-p", "--prefix", default="/dataset/speech/goodkejian/cutted/", help="Path prefix, automatic add before path")
 parser.add_argument("-m", "--mode", default=2, help="weather use mode 1 or 2")
 parser.add_argument("-d", "--dir", default="/dataset/speech/goodkejian/cutted", help="Directory contains wav files")
+parser.add_argument("-ds", "--data-source", default=None, help="Where the audio comes from")
 
 args = parser.parse_args()
 
@@ -43,7 +44,8 @@ def upload(lines: list):
         if args.prefix:
             line = os.path.join(args.prefix, line)
         data = json.dumps({
-            "file_path": f"{line}"
+            "file_path": f"{line}",
+            "audio_source": f"{args.data_source}"
         })
 
         res = requests.post(args.url, headers=header, data=data)
