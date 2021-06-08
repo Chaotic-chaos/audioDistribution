@@ -1,7 +1,10 @@
+import base64
 import csv
 import json
 
 import librosa
+from django.conf import settings
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponse, FileResponse
 from django.shortcuts import render
@@ -116,3 +119,27 @@ def export_data(request):
     writer.writerows(res)
 
     return response
+
+def show_tasks(request, page):
+    # 根据分页进行任务提取展示
+    page = int(page)
+    audios = Audio.objects.all()
+    paginator = Paginator(audios, per_page=30)
+
+    res = list(paginator.get_page(page).object_list.values())
+
+    # 处理base64
+    for audio in res:
+        with open(audio['audio_path'], "rb") as a:
+            audio_to_base64 = base64.b64encode(a.read())
+        # print(audio_to_base64)
+        audio['base64'] = str(audio_to_base64, encoding="utf-8")
+
+    return HttpResponse(json.dumps({
+        "pages": paginator.num_pages,
+        "data": res,
+    }))
+
+def index(request):
+    # 系统查看页面
+    return render(request, "getter/index.html")

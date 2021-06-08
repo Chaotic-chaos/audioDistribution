@@ -1,0 +1,104 @@
+<!--
+   Project:       offlineModelGetter
+   File Name:     index
+   Author:        Chaos
+   Email:         life0531@foxmail.com
+   Date:          2021/6/8
+   Software:      PyCharm
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>语音语料管理系统</title>
+    <link rel="stylesheet" href="https://www.layuicdn.com/layui/css/layui.css">
+</head>
+<body>
+<table class="layui-table" lay-even id="main-content">
+    <colgroup>
+        <col width="10%">
+        <col width="10%">
+        <col width="5%">
+        <col width="60%">
+    </colgroup>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Duration</th>
+            <th>Play</th>
+            <th>Transcript</th>
+            <th>Source</th>
+        </tr>
+    </thead>
+    <tbody>
+{#        <tr>#}
+{#            <td>01</td>#}
+{#            <td>1</td>#}
+{#            <td><i class="layui-icon layui-icon-headset" id="play_audio-1" onclick="play(this)">#}
+{#                <audio>#}
+{#                    <source src/>#}
+{#                </audio>#}
+{#            </i></td>#}
+{#            <td>你好</td>#}
+{#            <td>喜马拉雅</td>#}
+{#        </tr>#}
+{#        <tr>#}
+{#            <td>02</td>#}
+{#            <td>5</td>#}
+{#            <td>你好吗</td>#}
+{#            <td>喜马拉雅</td>#}
+{#        </tr>#}
+    </tbody>
+</table>
+
+
+
+<script src="https://www.layuicdn.com/layui/layui.js"></script>
+<script>
+    function play(obj){
+        var audio = obj.firstChild
+        {#console.log(audio)#}
+        audio.play();
+    }
+    layui.use('flow', function(){
+        var $ = layui.jquery;
+        var flow = layui.flow;
+
+        // 信息流
+        flow.load({
+            elem: "#main-content",
+            done: function(page, next){
+                // 到达临界点，渲染下一页
+                var audios = [];
+
+                // get data from server
+                $.post(
+                    "http://localhost:8000/getter/web/tasks/"+page+"/",
+                    function(res){
+                        // 请求成功回调
+                        // console.log(res)
+                        res = JSON.parse(res)
+                        // console.log(res.data)
+                        layui.each(res.data, function(index, item){
+                            // console.log(item)
+                            audios.push(
+                                    "<tr>" +
+                                        "<td>" + item.id + "</td>" +
+                                        "<td>" + item.duration + "</td>" +
+                                        "<td><i class='layui-icon layui-icon-headset' id='play_audio-1' onclick='play(this)'><audio><source src=data:audio/wav;base64," + item.base64 + "/></audio></td>" +
+                                        "<td>" + item.transcript + "</td>" +
+                                        "<td>" + item.source + "</td>" +
+                                    "</tr>"
+                            );
+                        })
+
+                        next(audios.join(''), page < res.pages)
+                    }
+                )
+
+        }
+        })
+    })
+</script>
+</body>
+</html>

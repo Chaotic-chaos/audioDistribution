@@ -15,4 +15,6 @@ urlpatterns = [
     path("task/", views.upload_task, name="upload_one_task"),
     path("transcript/", views.update_text, name="update_text_for_one_audio"),
     path("data/", views.export_data, name="export_all_data"),
+    path("web/tasks/<page>/", views.show_tasks, name="show_all_tasks_with_a_webpage"),
+    path("web/index/", views.index, name="system_web_index"),
 ]

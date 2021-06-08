@@ -19,11 +19,11 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", "--src", default=None, help="Path of source tsv file")
-parser.add_argument("-u", "--url", default="http://222.197.219.26:5555/getter/task/", help="URL for upload task")
-parser.add_argument("-p", "--prefix", default="/dataset/speech/goodkejian/cutted/", help="Path prefix, automatic add before path")
+parser.add_argument("-u", "--url", default="http://localhost:8000/getter/task/", help="URL for upload task")
+parser.add_argument("-p", "--prefix", default="H:\\Datasets\\Opensource\\vivos\\train\\waves\\VIVOSSPK01\\", help="Path prefix, automatic add before path")
 parser.add_argument("-m", "--mode", default=2, help="weather use mode 1 or 2")
-parser.add_argument("-d", "--dir", default="/dataset/speech/goodkejian/cutted", help="Directory contains wav files")
-parser.add_argument("-ds", "--data-source", default=None, help="Where the audio comes from")
+parser.add_argument("-d", "--dir", default="H:\\Datasets\\Opensource\\vivos\\train\\waves\\VIVOSSPK01\\", help="Directory contains wav files")
+parser.add_argument("-ds", "--data-source", default="test", help="Where the audio comes from")
 
 args = parser.parse_args()
 
