@@ -30,7 +30,7 @@
             <th>Source</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="table-body">
 {#        <tr>#}
 {#            <td>01</td>#}
 {#            <td>1</td>#}
@@ -51,38 +51,48 @@
     </tbody>
 </table>
 
+<div id="page-box" style="float: right; margin-right: 5%;"></div>
 
 
 <script src="https://www.layuicdn.com/layui/layui.js"></script>
 <script>
+    URL = "http://localhost:8000/getter/web/tasks/";
     function play(obj){
         var audio = obj.firstChild
         {#console.log(audio)#}
         audio.play();
     }
-    layui.use('flow', function(){
+
+    layui.use(['laypage', 'layer'], function(){
+        var laypage = layui.laypage;
+        var layer = layui.layer;
         var $ = layui.jquery;
-        var flow = layui.flow;
 
-        // 信息流
-        flow.load({
-            elem: "#main-content",
-            done: function(page, next){
-                // 到达临界点，渲染下一页
-                var audios = [];
+        $.ajax({
+            type: "post",
+            url: URL + "1/",
+            async: false,
+            success: function(res){
+                res = JSON.parse(res);
+                // console.log(res.pages);
+                pages = res.pages;
+                first_data = res.data;
+            }
+        })
 
-                // get data from server
-                $.post(
-                    "http://localhost:8000/getter/web/tasks/"+page+"/",
-                    function(res){
-                        // 请求成功回调
-                        // console.log(res)
-                        res = JSON.parse(res)
-                        // console.log(res.data)
-                        layui.each(res.data, function(index, item){
-                            // console.log(item)
+        laypage.render({
+            elem: "page-box",
+            count: pages*30,
+            limit: 30,
+            groups: 20,
+            layout: ['prev', 'page', 'next', 'skip'],
+            jump: function (obj, first){
+                if(first){
+                    // 首次加载，直接进行渲染
+                    var audios = [];
+                    layui.each(first_data, function(index, item){
                             audios.push(
-                                    "<tr>" +
+                                "<tr>" +
                                         "<td>" + item.id + "</td>" +
                                         "<td>" + item.duration + "</td>" +
                                         "<td><i class='layui-icon layui-icon-headset' id='play_audio-1' onclick='play(this)'><audio><source src=data:audio/wav;base64," + item.base64 + "/></audio></td>" +
@@ -90,14 +100,46 @@
                                         "<td>" + item.source + "</td>" +
                                     "</tr>"
                             );
+                            // console.log(audios);
+                            $("#table-body").html(audios);
                         })
-
-                        next(audios.join(''), page < res.pages)
-                    }
-                )
-
-        }
-        })
+                }
+                else {
+                    // 翻页回调
+                    $.ajax({
+                        url: URL + obj.curr + "/",
+                        type: "post",
+                        // async: false,
+                        beforeSend: function () {
+                            // loading
+                            load_layer = layer.load(2);
+                        },
+                        success: function (res) {
+                            res = JSON.parse(res);
+                            var audios = []
+                            layui.each(res.data, function (index, item) {
+                                audios.push(
+                                    "<tr>" +
+                                    "<td>" + item.id + "</td>" +
+                                    "<td>" + item.duration + "</td>" +
+                                    "<td><i class='layui-icon layui-icon-headset' id='play_audio-1' onclick='play(this)'><audio><source src=data:audio/wav;base64," + item.base64 + "/></audio></td>" +
+                                    "<td>" + item.transcript + "</td>" +
+                                    "<td>" + item.source + "</td>" +
+                                    "</tr>"
+                                );
+                                // console.log(audios);
+                                $("#table-body").html(audios);
+                            })
+                            // $("#table-body").html("<h1>1111</h1>")
+                        },
+                        complete: function () {
+                            // ajax完成，取消加载框
+                            layer.close(load_layer);
+                        }
+                    })
+                }
+            }
+        });
     })
 </script>
 </body>
